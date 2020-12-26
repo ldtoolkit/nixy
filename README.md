@@ -28,6 +28,15 @@ $ nixy postgresql-manage -- createdb $USER -h ~/.postgresql/
 $ nixy run -- psql -h ~/.postgresql/
 ```
 
+### Python
+
+```bash
+$ nixy install python3-3.9.1
+$ nixy run -- python -m venv ~/.venv
+$ nixy run ~/.venv/bin/pip install ipython
+$ nixy run ~/.venv/bin/ipython
+```
+
 ## Building the static binary
 
 ```bash
