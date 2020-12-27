@@ -1,4 +1,5 @@
 import ../lib/core as lib
+
 import options
 import os
 import strutils
@@ -70,12 +71,4 @@ proc run*(command: seq[string],
   except RunError as e:
     echo(e.msg)
     return 1
-  return 0
-
-proc nixy_allow_profile*: int =
-  lib.allowCurrentDirNixyProfile()
-  return 0
-
-proc nixy_disallow_profile*: int =
-  lib.disallowCurrentDirNixyProfile()
   return 0

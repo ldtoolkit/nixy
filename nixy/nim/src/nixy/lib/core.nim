@@ -275,15 +275,3 @@ proc run*(command: string,
     execCmd(command)
   except Exception as e:
     raise newException(RunError, "Failed to run command '" & command & "': " & e.msg)
-
-proc allowCurrentDirNixyProfile* =
-  var config = readConfig()
-  if not isCurrentDirNixyProfileAllowed():
-    config.allowedNixyProfileDirs.add(getCurrentDir())
-  writeConfig(config)
-
-proc disallowCurrentDirNixyProfile* =
-  var config = readConfig()
-  if isCurrentDirNixyProfileAllowed():
-    config.allowedNixyProfileDirs.delete(config.allowedNixyProfileDirs.find(getCurrentDir()))
-  writeConfig(config)

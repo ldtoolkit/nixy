@@ -1,4 +1,5 @@
 import nixy/cli/core
+import nixy/cli/nixy
 import nixy/cli/postgresql
 import nixy/lib/core as lib
 import nixy/lib/postgresql as lib_postgresql
@@ -9,8 +10,8 @@ when isMainModule:
                 [core.remove],
                 [core.list],
                 [core.run],
-                [core.nixy_allow_profile],
-                [core.nixy_disallow_profile],
+                [nixy.nixy_allow_profile],
+                [nixy.nixy_disallow_profile],
                 [postgresql.postgresql_init],
                 [postgresql.postgresql_manage],
                 [postgresql.postgresql_start],
