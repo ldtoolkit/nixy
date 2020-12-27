@@ -44,8 +44,10 @@ $ nixy run ipython
 ## Building the static binary
 
 ```bash
-$ # Install musl
+$ # Install nim, musl
 $ cd nixy/nim/
+$ # Copy yaml lib to nimble packages:
+$ rsync -a nimbledeps/pkgs/yaml-\#head ~/.nimble/pkgs/
 $ # (this will download LibreSSL and compile it for you!)
 $ nim musl -d:libressl src/nixy.nim
 $ # Observe the binary in bin/
