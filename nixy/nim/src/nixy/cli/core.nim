@@ -1,4 +1,5 @@
 import ../lib/core as lib
+import ../lib/errors
 
 import options
 import os

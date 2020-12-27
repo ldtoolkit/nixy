@@ -1,4 +1,5 @@
 import ../lib/core
+import ../lib/errors
 import ../lib/postgresql
 import os
 

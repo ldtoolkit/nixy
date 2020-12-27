@@ -1,4 +1,5 @@
 import core
+import errors
 
 import os
 import osproc

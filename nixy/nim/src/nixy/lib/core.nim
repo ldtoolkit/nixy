@@ -1,4 +1,5 @@
 import config
+import errors
 
 import distros
 import httpclient
@@ -10,22 +11,6 @@ import sets
 import strformat
 import strutils
 import system
-
-
-type
-  NixiError* = object of CatchableError
-  IncompatibleOSError* = object of NixiError
-  IncompatibleOSErrorMessage = enum
-    NotGNULinux = "Operating Systems other than GNU/Linux are not supported",
-    NotAmd64OrI386 = "CPUs other than amd64 and i386 are not supported",
-    UnsupportedUserNamespaces = "Looks like your kernel doesn't support user namespaces for unprivileged users"
-  DownloadError* = object of NixiError
-  BootstrapError* = object of NixiError
-  InstallError* = object of NixiError
-  RemoveError* = object of NixiError
-  QueryError* = object of NixiError
-  RunError* = object of NixiError
-  LocaleArchiveNotFound* = object of NixiError
 
 
 const nixUserChrootLatestVersion* = "1.0.3"
@@ -108,6 +93,9 @@ proc downloadNixUserChroot(url: Option[string] = none(string),
   path
 
 
+proc getNixyProfileFile*: string = getCurrentDir() / ".nixyrc"
+
+
 proc prepareCommand*(command: string = "",
                      nixUserChrootDir: string = defaultNixUserChrootDir,
                      nixDir: string = defaultNixDir,
@@ -122,10 +110,9 @@ proc prepareCommand*(command: string = "",
     var command = command
     if isEmptyOrWhitespace(command):
       command = "bash"
-    let nixyProfile = getCurrentDir() / ".nixyrc"
-    if sourceNixyProfile and nixyProfile.fileExists:
+    if sourceNixyProfile and getNixyProfileFile().fileExists:
       if isCurrentDirNixyProfileAllowed():
-        command = fmt"source {nixyProfile}; {command}"
+        command = fmt"source {getNixyProfileFile()}; {command}"
       else:
         echo("Nixy profile found in current dir, but it's not allowed in the Nixy configuration file; " &
              "Use nixy nixy_allow_profile")
@@ -140,7 +127,7 @@ proc prepareCommand*(command: string = "",
         if systemLocaleArchive.fileExists:
           command = fmt"export LOCALE_ARCHIVE={systemLocaleArchive}; {command}"
         else:
-          raise newException(LocaleArchiveNotFound,
+          raise newException(LocaleArchiveNotFoundError,
                              "No locale archive found, please install it using:\n" &
                              "nixy install --attr nixpkgs.glibcLocales")
     return fmt"{execBash} -c '{command}'"
