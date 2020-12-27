@@ -71,3 +71,11 @@ proc run*(command: seq[string],
     echo(e.msg)
     return 1
   return 0
+
+proc nixy_allow_profile*: int =
+  lib.allowCurrentDirNixyProfile()
+  return 0
+
+proc nixy_disallow_profile*: int =
+  lib.disallowCurrentDirNixyProfile()
+  return 0

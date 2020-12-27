@@ -11,4 +11,4 @@ bin           = @["nixy"]
 
 # Dependencies
 
-requires "nim >= 1.4.2", "cligen >= 1.3.2"
+requires "nim >= 1.4.2", "cligen >= 1.3.2", "https://github.com/flyx/NimYAML.git#head"

@@ -1,3 +1,5 @@
+import config
+
 import distros
 import httpclient
 import options
@@ -105,12 +107,14 @@ proc downloadNixUserChroot(url: Option[string] = none(string),
 
   path
 
+
 proc prepareCommand*(command: string = "",
                      nixUserChrootDir: string = defaultNixUserChrootDir,
                      nixDir: string = defaultNixDir,
                      sourceNixProfileSh: bool = true,
                      fixLocale: bool = true,
-                     useSystemLocaleArchive: bool = false): string =
+                     useSystemLocaleArchive: bool = false,
+                     sourceNixyProfile: bool = true): string =
   let nixUserChrootPath = getNixUserChrootPath(nixUserChrootDir)
   let nixDir = nixDir.expandTilde
   suppress:
@@ -118,6 +122,13 @@ proc prepareCommand*(command: string = "",
     var command = command
     if isEmptyOrWhitespace(command):
       command = "bash"
+    let nixyProfile = getCurrentDir() / ".nixyrc"
+    if sourceNixyProfile and nixyProfile.fileExists:
+      if isCurrentDirNixyProfileAllowed():
+        command = fmt"source {nixyProfile}; {command}"
+      else:
+        echo("Nixy profile found in current dir, but it's not allowed in the Nixy configuration file; " &
+             "Use nixy nixy_allow_profile")
     if sourceNixProfileSh:
       command = fmt"source {nixProfileSh}; {command}"
     if fixLocale:
@@ -264,3 +275,15 @@ proc run*(command: string,
     execCmd(command)
   except Exception as e:
     raise newException(RunError, "Failed to run command '" & command & "': " & e.msg)
+
+proc allowCurrentDirNixyProfile* =
+  var config = readConfig()
+  if not isCurrentDirNixyProfileAllowed():
+    config.allowedNixyProfileDirs.add(getCurrentDir())
+  writeConfig(config)
+
+proc disallowCurrentDirNixyProfile* =
+  var config = readConfig()
+  if isCurrentDirNixyProfileAllowed():
+    config.allowedNixyProfileDirs.delete(config.allowedNixyProfileDirs.find(getCurrentDir()))
+  writeConfig(config)
