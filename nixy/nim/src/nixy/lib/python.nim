@@ -12,8 +12,9 @@ const defaultPythonExecutable* = "python";
 
 
 type
-  PythonVenvCreationError* = object of NixyError
-  PythonVenvLocalError* = object of NixyError
+  PythonVenvError* = object of NixyError
+  PythonVenvCreationError* = object of PythonVenvError
+  PythonVenvLocalError* = object of PythonVenvError
 
 
 proc getPythonStoreDir: string {.raises: [StoreDirError].} = getStoreDir("python")
@@ -32,32 +33,40 @@ proc venv*(name: string = "",
            nixDir: string = defaultNixDir,
            useSystemLocaleArchive: bool = false)
           {.raises: [PythonVenvCreationError].} =
-  const PythonVenvCreationErrorMessage = "Failed to create venv: "
+  const errorMessage = "Failed to create venv: "
   if isEmptyOrWhitespace(name) and isEmptyOrWhitespace(venvDir):
-    raise newException(PythonVenvCreationError,
-                       PythonVenvCreationErrorMessage & "both (name and venv dir) cannot be empty")
+    raise newException(PythonVenvCreationError, errorMessage & "both (name and venv dir) cannot be empty")
 
   try:
     let venvDir = if not isEmptyOrWhitespace(name): getPythonVenvDir(name) else: venvDir
     let command = pythonExecutable & " -m venv " & quoteShell(venvDir)
     run(command)
   except RunError, StoreDirError:
-    raise newException(PythonVenvCreationError, PythonVenvCreationErrorMessage & getCurrentExceptionMsg())
+    raise newException(PythonVenvCreationError, errorMessage & getCurrentExceptionMsg())
+
+proc getVenvActivationCommand(name: string = "", venvDir: string = ""): string {.raises: [PythonVenvError].} =
+  const errorMessage = "Failed to prepare venv activation command: "
+  if isEmptyOrWhitespace(name) and isEmptyOrWhitespace(venvDir):
+    raise newException(PythonVenvError, errorMessage & "both (name and venv dir) cannot be empty")
+
+  let venvDir =
+    try:
+      if not isEmptyOrWhitespace(name): getPythonVenvDir(name) else: venvDir
+    except StoreDirError as e:
+      raise newException(PythonVenvError, errorMessage & e.msg)
+  let activateFile = venvDir / "bin" / "activate"
+  "source " & quoteShell(activateFile)
 
 proc local*(name: string = "", venvDir: string = "") {.raises: [ConfigError, PythonVenvLocalError].} =
-  const PythonVenvLocalErrorMessage = "Failed to write venv activation command to .nixyrc: "
-  if isEmptyOrWhitespace(name) and isEmptyOrWhitespace(venvDir):
-    raise newException(PythonVenvLocalError, PythonVenvLocalErrorMessage & "both (name and venv dir) cannot be empty")
-
+  const errorMessage = "Failed to write venv activation command to .nixyrc: "
   try:
-    let nixyProfileFileContent = readFile(getNixyProfileFile())
-    let venvDir = if not isEmptyOrWhitespace(name): getPythonVenvDir(name) else: venvDir
-    let activateFile = venvDir / "bin" / "activate"
-    let venvActivationCommand = "source " & quoteShell(activateFile)
+    let nixyProfileFile = getNixyProfileFile()
+    let nixyProfileFileContent = if nixyProfileFile.fileExists: readFile(nixyProfileFile) else: ""
+    let venvActivationCommand = getVenvActivationCommand(name = name, venvDir = venvDir)
     if not (venvActivationCommand in nixyProfileFileContent.splitLines()):
-      let f = open(getNixyProfileFile(), fmAppend)
+      let f = open(nixyProfileFile, fmAppend)
       defer: f.close()
       f.write(venvActivationCommand)
-  except IOError, OSError, StoreDirError:
-    raise newException(PythonVenvLocalError, PythonVenvLocalErrorMessage & getCurrentExceptionMsg())
+  except IOError, OSError, PythonVenvError, StoreDirError:
+    raise newException(PythonVenvLocalError, errorMessage & getCurrentExceptionMsg())
   allowCurrentDirNixyProfile()
