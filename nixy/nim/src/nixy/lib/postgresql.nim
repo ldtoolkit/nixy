@@ -34,7 +34,7 @@ proc init*(storeDir: string = defaultPostgreSQLStoreDir,
 proc preparePgCtlCommand(command: string,
                          storeDir: string = defaultPostgreSQLStoreDir,
                          logFile: string = defaultPostgreSQLLogFile,
-                         socketDir: string = defaultPostgreSQLSocketDir): string =
+                         socketDir: string = defaultPostgreSQLSocketDir): string {.raises: [].} =
   let socketDir = socketDir.expandTilde
   suppress: return fmt"pg_ctl -D {storeDir} -l {logFile} -o '--unix_socket_directories={socketDir}' {command}"
 

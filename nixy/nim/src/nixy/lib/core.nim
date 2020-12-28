@@ -47,7 +47,8 @@ proc raiseOnIncompatabileOS {.raises: [IncompatibleOSError].} =
     raise newException(IncompatibleOSError,
         $IncompatibleOSErrorMessage.UnsupportedUserNamespaces)
 
-proc getNixUserChrootPath*(nixUserChrootDir: string): string = nixUserChrootDir.expandTilde / "nix-user-chroot"
+proc getNixUserChrootPath*(nixUserChrootDir: string): string {.raises: [].} =
+  nixUserChrootDir.expandTilde / "nix-user-chroot"
 
 proc downloadNixUserChroot(url: Option[string] = none(string),
                            version: string = nixUserChrootLatestVersion,

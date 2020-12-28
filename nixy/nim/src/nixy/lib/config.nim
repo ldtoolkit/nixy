@@ -36,6 +36,9 @@ proc writeConfig*(config: Config) {.raises: [ConfigWriteError].} =
   except Exception as e:
     raise newException(ConfigWriteError, "Failed to write Nixy config: " & e.msg)
 
-proc isCurrentDirNixyProfileAllowed*: bool =
+proc isCurrentDirNixyProfileAllowed*: bool {.raises: [ConfigReadError].} =
   let config = readConfig()
-  return getCurrentDir() in config.allowedNixyProfileDirs
+  try:
+    return getCurrentDir() in config.allowedNixyProfileDirs
+  except OSError as e:
+    raise newException(ConfigReadError, "Failed to get current dir: " & e.msg)
