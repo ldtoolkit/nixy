@@ -4,8 +4,8 @@ import ../lib/errors
 import ../lib/python
 
 
-proc python_venv*(venvDir: seq[string],
-                  pythonExecutable: string = defaultPythonExecutable,
+proc python_venv*(venv_dir: seq[string],
+                  python_executable: string = defaultPythonExecutable,
                   nix_user_chroot_dir: string = defaultNixUserChrootDir,
                   nix_dir = defaultNixDir,
                   use_system_locale_archive: bool = false): int
@@ -21,7 +21,7 @@ proc python_venv*(venvDir: seq[string],
     return 1
   return 0
 
-proc python_local*(venvDir: seq[string]): int {.raises: [].} =
+proc python_local*(venv_dir: seq[string]): int {.raises: [].} =
   try:
     python.local(venvDir[0])
   except ConfigError, PythonVenvLocal:
