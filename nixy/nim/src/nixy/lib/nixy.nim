@@ -1,4 +1,5 @@
 import config
+import core
 
 import os
 
@@ -6,8 +7,9 @@ import os
 proc allowCurrentDirNixyProfile* {.raises: [ConfigReadError, ConfigWriteError].} =
   var config = readConfig()
   try:
-    if not isCurrentDirNixyProfileAllowed():
-      config.allowedNixyProfileDirs.add(getCurrentDir())
+    let nixyProfileFile = getNixyProfileFile()
+    if not isNixyProfileAllowed(nixyProfileFile):
+      config.allowedNixyProfileDirs.add(nixyProfileFile.parentDir)
     writeConfig(config)
   except OSError as e:
     raise newException(ConfigWriteError, "Failed to write Nixy config: " & e.msg)
@@ -15,8 +17,9 @@ proc allowCurrentDirNixyProfile* {.raises: [ConfigReadError, ConfigWriteError].}
 proc disallowCurrentDirNixyProfile* {.raises: [ConfigReadError, ConfigWriteError].}=
   var config = readConfig()
   try:
-    if isCurrentDirNixyProfileAllowed():
-      config.allowedNixyProfileDirs.delete(config.allowedNixyProfileDirs.find(getCurrentDir()))
+    let nixyProfileFile = getNixyProfileFile()
+    if isNixyProfileAllowed(nixyProfileFile):
+      config.allowedNixyProfileDirs.delete(config.allowedNixyProfileDirs.find(nixyProfileFile.parentDir))
     writeConfig(config)
   except OSError as e:
     raise newException(ConfigWriteError, "Failed to write Nixy config: " & e.msg)

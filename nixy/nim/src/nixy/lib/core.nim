@@ -94,8 +94,17 @@ proc downloadNixUserChroot(url: Option[string] = none(string),
   path
 
 
-proc getNixyProfileFile*: string = getCurrentDir() / ".nixyrc"
-
+proc getNixyProfileFile*: string =
+  var dir = getCurrentDir()
+  result = dir / ".nixyrc"
+  var i = 0
+  const maxParentCount = 128
+  while not result.fileExists and i < maxParentCount:
+    i += 1
+    dir = dir.parentDir
+    result = dir / ".nixyrc"
+  if not result.fileExists:
+    result = ""
 
 proc prepareCommand*(command: string = "",
                      nixUserChrootDir: string = defaultNixUserChrootDir,
@@ -111,12 +120,13 @@ proc prepareCommand*(command: string = "",
     var command = command
     if isEmptyOrWhitespace(command):
       command = "bash"
-    if sourceNixyProfile and getNixyProfileFile().fileExists:
-      if isCurrentDirNixyProfileAllowed():
-        command = fmt"source {getNixyProfileFile()}; {command}"
-      else:
-        echo("Nixy profile found in current dir, but it's not allowed in the Nixy configuration file; " &
-             "Use nixy nixy_allow_profile")
+    if sourceNixyProfile:
+      let nixyProfileFile = getNixyProfileFile()
+      if not isEmptyOrWhitespace(nixyProfileFile):
+        if isNixyProfileAllowed(nixyProfileFile):
+          command = "source " & quoteShell(nixyProfileFile) & "; " & command
+        else:
+          echo("Nixy profile found, but it's not allowed in the Nixy configuration file; Use nixy nixy_allow_profile")
     if sourceNixProfileSh:
       command = fmt"source {nixProfileSh}; {command}"
     if fixLocale:
