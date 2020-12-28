@@ -1,6 +1,8 @@
 # nixy
 Install packages without a root using Nix
 
+WIP: not production-ready!
+
 ## System requirements
 
 The only supported OS is GNU/Linux. i386/amd64 platforms are supported, but the binary is available only for amd64 (check releases). Please note, that your kernel should support user namespaces for unprivileged users. Most popular GNU/Linux distributions come with this support out of box. Please check https://github.com/nix-community/nix-user-chroot#check-if-your-kernel-supports-user-namespaces-for-unprivileged-users for more information.
