@@ -32,12 +32,12 @@ $ nixy run -- psql -h ~/.postgresql/
 
 ```bash
 $ nixy install python3-3.9.1
-$ nixy python-venv ~/.venv
-$ nixy run ~/.venv/bin/pip install ipython
-$ nixy run ~/.venv/bin/ipython
+$ nixy python-venv test
+$ nixy run ~/.nixy/python/venv/test/bin/pip install ipython
+$ nixy run ~/.nixy/python/venv/test/bin/ipython
 $ # You can "bound" the venv to a current directory:
-$ nixy python-local ~/.venv
-$ # Will call ipython from ~/.venv:
+$ nixy python-local test
+$ # Will call ipython from test venv:
 $ nixy run ipython
 ```
 
