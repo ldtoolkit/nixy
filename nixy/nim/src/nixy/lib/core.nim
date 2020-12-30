@@ -93,18 +93,23 @@ proc downloadNixUserChroot(url: Option[string] = none(string),
 
   path
 
-
-proc getNixyProfileFile*: string =
-  var dir = getCurrentDir()
-  result = dir / ".nixyrc"
+proc findFileInCurrentDirOrParents*(name: string): string {.raises: [].} =
+  var dir =
+    try:
+      getCurrentDir()
+    except OSError as e:
+      "/"
+  result = dir / name
   var i = 0
   const maxParentCount = 128
-  while not result.fileExists and i < maxParentCount:
+  while dir != "/" and not result.fileExists and i < maxParentCount:
     i += 1
     dir = dir.parentDir
-    result = dir / ".nixyrc"
+    result = dir / name
   if not result.fileExists:
     result = ""
+
+proc getNixyProfileFile*: string {.raises: [].} = findFileInCurrentDirOrParents(".nixyrc")
 
 proc prepareCommand*(command: string = "",
                      nixUserChrootDir: string = defaultNixUserChrootDir,
