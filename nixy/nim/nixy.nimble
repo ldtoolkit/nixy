@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.1.3"
 author        = "Roman Inflianskas"
 description   = "Install packages without a root using Nix"
 license       = "Apache-2.0"

@@ -7,10 +7,13 @@ import nixy/lib/module/pkg as pkg_lib
 import nixy/lib/module/postgresql as postgresql_lib
 import nixy/lib/module/python_utils as python_utils_lib
 import nixy/lib/path as path_lib
+
 import cligen
+include cligen/mergeCfgEnv
 
 
 when isMainModule:
+  clCfg.version = "0.1.3"
   dispatchMulti(
     [pkg.install],
     [pkg.remove],

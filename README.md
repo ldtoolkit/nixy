@@ -41,6 +41,8 @@ $ # You can "bound" the venv to a current directory:
 $ nixy python-local test
 $ # Will call ipython from test venv:
 $ nixy run ipython
+$ nixy python-which
+test
 ```
 
 ## Building the static binary

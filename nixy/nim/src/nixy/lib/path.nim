@@ -14,7 +14,7 @@ proc findFileInCurrentDirOrParents*(name: string): string {.raises: [].} =
   var dir =
     try:
       getCurrentDir()
-    except OSError as e:
+    except OSError:
       "/"
   result = dir / name
   var i = 0
