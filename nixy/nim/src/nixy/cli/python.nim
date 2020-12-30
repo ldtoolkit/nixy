@@ -30,3 +30,11 @@ proc python_local*(name: seq[string], venv_dir: string = ""): int {.raises: [].}
     echo(getCurrentExceptionMsg())
     return 1
   return 0
+
+proc python_which*: int {.raises: [].} =
+  try:
+    echo(python.which())
+  except PythonVenvGetLocalError as e:
+    echo(e.msg)
+    return 1
+  return 0

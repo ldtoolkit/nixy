@@ -38,3 +38,6 @@ proc local*(name: string = "", venvDir: string = "") {.raises: [ConfigError, Pyt
   except IOError, OSError:
     raise newException(PythonVenvLocalError, errorMessage & getCurrentExceptionMsg())
   allowCurrentDirNixyConfigs()
+
+proc which*: string {.raises: PythonVenvGetLocalError.} =
+  getLocalVenv()

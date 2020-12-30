@@ -11,15 +11,18 @@ import cligen
 
 
 when isMainModule:
-  dispatchMulti([pkg.install],
-                [pkg.remove],
-                [pkg.list],
-                [cmd.run],
-                [nixy.nixy_allow_profile],
-                [nixy.nixy_disallow_profile],
-                [postgresql.postgresql_init],
-                [postgresql.postgresql_manage],
-                [postgresql.postgresql_start],
-                [postgresql.postgresql_stop],
-                [python.python_venv],
-                [python.python_local])
+  dispatchMulti(
+    [pkg.install],
+    [pkg.remove],
+    [pkg.list],
+    [cmd.run],
+    [nixy.nixy_allow_profile],
+    [nixy.nixy_disallow_profile],
+    [postgresql.postgresql_init],
+    [postgresql.postgresql_manage],
+    [postgresql.postgresql_start],
+    [postgresql.postgresql_stop],
+    [python.python_local],
+    [python.python_venv],
+    [python.python_which],
+  )

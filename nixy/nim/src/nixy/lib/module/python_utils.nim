@@ -1,3 +1,4 @@
+import ../config
 import ../errors
 import ../store
 import ../path
@@ -16,6 +17,7 @@ type
   PythonVenvCreationError* = object of PythonVenvError
   PythonVenvLocalError* = object of PythonVenvError
   PythonVenvGetDirError* = object of PythonVenvError
+  PythonVenvGetLocalError* = object of PythonVenvError
 
 
 proc getPythonStoreDir: string {.raises: [StoreDirError].} = getStoreDir("python")
@@ -51,3 +53,19 @@ proc getVenvActivationCommand*(name: string = "", venvDir: string = ""): string 
       raise newException(PythonVenvError, venvActivationCommandPreparationErrorMessage & e.msg)
   let activateFile = venvDir / "bin" / "activate"
   "source " & quoteShell(activateFile)
+
+proc getLocalVenv*: string {.raises: [PythonVenvGetLocalError].} =
+  const errorMessage = "Failed to get Python local venv: "
+  let nixyPythonVersionFile = getNixyPythonVersionFile()
+  if not isEmptyOrWhitespace(nixyPythonVersionFile):
+    let dirConfigsAllowed =
+      try:
+        areNixyDirConfigsAllowed(nixyPythonVersionFile.parentDir)
+      except ConfigReadError as e:
+        raise newException(PythonVenvGetLocalError, errorMessage & e.msg)
+    if dirConfigsAllowed:
+      try:
+        return readFile(nixyPythonVersionFile).strip.expandTilde
+      except IOError as e:
+        raise newException(PythonVenvGetLocalError, errorMessage & e.msg)
+  return "system"
