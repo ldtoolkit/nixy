@@ -1,5 +1,7 @@
-import config
-import errors
+import ../errors
+import ../path
+import ../utils
+import cmd
 
 import distros
 import httpclient
@@ -14,17 +16,7 @@ import system
 
 
 const nixUserChrootLatestVersion* = "1.0.3"
-const defaultNixUserChrootDir* = "~/.nix-user-chroot/"
-const defaultNixDir* = "~/.nix/"
-const nixProfileSh = "~/.nix-profile/etc/profile.d/nix.sh"
-const systemLocaleArchive = "/usr/lib/locale/locale-archive"
 
-
-template suppress*(body: untyped) =
-  try:
-    body
-  except:
-    discard
 
 proc raiseOnIncompatabileOS {.raises: [IncompatibleOSError].} =
   try:
@@ -46,9 +38,6 @@ proc raiseOnIncompatabileOS {.raises: [IncompatibleOSError].} =
   if namespacesForUnprivelegedUsersString.strip != "YES":
     raise newException(IncompatibleOSError,
         $IncompatibleOSErrorMessage.UnsupportedUserNamespaces)
-
-proc getNixUserChrootPath*(nixUserChrootDir: string): string {.raises: [].} =
-  nixUserChrootDir.expandTilde / "nix-user-chroot"
 
 proc downloadNixUserChroot(url: Option[string] = none(string),
                            version: string = nixUserChrootLatestVersion,
@@ -92,60 +81,6 @@ proc downloadNixUserChroot(url: Option[string] = none(string),
   path.setFilePermissions({fpUserExec, fpUserWrite, fpUserRead})
 
   path
-
-proc findFileInCurrentDirOrParents*(name: string): string {.raises: [].} =
-  var dir =
-    try:
-      getCurrentDir()
-    except OSError as e:
-      "/"
-  result = dir / name
-  var i = 0
-  const maxParentCount = 128
-  while dir != "/" and not result.fileExists and i < maxParentCount:
-    i += 1
-    dir = dir.parentDir
-    result = dir / name
-  if not result.fileExists:
-    result = ""
-
-proc getNixyProfileFile*: string {.raises: [].} = findFileInCurrentDirOrParents(".nixyrc")
-
-proc prepareCommand*(command: string = "",
-                     nixUserChrootDir: string = defaultNixUserChrootDir,
-                     nixDir: string = defaultNixDir,
-                     sourceNixProfileSh: bool = true,
-                     fixLocale: bool = true,
-                     useSystemLocaleArchive: bool = false,
-                     sourceNixyProfile: bool = true): string =
-  let nixUserChrootPath = getNixUserChrootPath(nixUserChrootDir)
-  let nixDir = nixDir.expandTilde
-  let execBash = quoteShellCommand([nixUserChrootPath, nixDir, "bash"])
-  var command = command
-  if isEmptyOrWhitespace(command):
-    command = "bash"
-  if sourceNixyProfile:
-    let nixyProfileFile = getNixyProfileFile()
-    if not isEmptyOrWhitespace(nixyProfileFile):
-      if isNixyProfileAllowed(nixyProfileFile):
-        command = "source " & quoteShell(nixyProfileFile) & "; " & command
-      else:
-        echo("Nixy profile found, but it's not allowed in the Nixy configuration file; Use nixy nixy_allow_profile")
-  if sourceNixProfileSh:
-    command = "source " & quoteShell(nixProfileSh) & "; " & command
-  if fixLocale:
-    if not useSystemLocaleArchive:
-      let nixLocale = "~/.nix-profile".expandTilde.expandSymlink
-      let nixLocaleArchive = nixLocale / "lib" / "locale" / "locale-archive"
-      command = "export LOCALE_ARCHIVE=" & quoteShell(nixLocaleArchive) & "; " & command
-    else:
-      if systemLocaleArchive.fileExists:
-        command = "export LOCALE_ARCHIVE=" & quoteShell(systemLocaleArchive) & "; " & command
-      else:
-        raise newException(LocaleArchiveNotFoundError,
-                           "No locale archive found, please install it using:\n" &
-                           "nixy install --attr nixpkgs.glibcLocales")
-  return execBash & " -c '" & command & "'"
 
 proc install*(packages: seq[string],
               unstable: bool = false,
@@ -263,17 +198,3 @@ proc bootstrap*(url: Option[string] = none(string),
     except InstallError as e:
       raise newException(BootstrapError, bootstrapErrorMessage & e.msg)
 
-proc run*(command: string,
-          nixUserChrootDir: string = defaultNixUserChrootDir,
-          nixDir: string = defaultNixDir,
-          useSystemLocaleArchive: bool = false)
-         {.raises: [RunError].} =
-  let nixDir = nixDir.expandTilde
-  try:
-    let command = prepareCommand(command,
-                                 nixUserChrootDir = nixUserChrootDir,
-                                 nixDir = nixDir,
-                                 useSystemLocaleArchive = useSystemLocaleArchive)
-    execCmd(command)
-  except Exception as e:
-    raise newException(RunError, "Failed to run command '" & command & "': " & e.msg)

@@ -12,3 +12,4 @@ type
   QueryError* = object of NixyError
   RunError* = object of NixyError
   LocaleArchiveNotFoundError* = object of NixyError
+  PrepareCommandError* = object of NixyError

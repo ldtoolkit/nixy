@@ -1,6 +1,7 @@
-import ../lib/core
 import ../lib/errors
-import ../lib/postgresql
+import ../lib/module/postgresql
+import ../lib/path
+
 import os
 
 

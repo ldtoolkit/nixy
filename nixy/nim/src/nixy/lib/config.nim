@@ -6,9 +6,9 @@ import yaml/serialization
 
 
 type
-  AllowedNixyProfileDirs = seq[string]
+  AllowedNixyDirConfigsDirs = seq[string]
   Config = object
-    allowed_nixy_profile_dirs*: AllowedNixyProfileDirs
+    allowed_nixy_dir_configs_dirs*: AllowedNixyDirConfigsDirs
 
   ConfigError* = object of NixyError
   ConfigReadError* = object of ConfigError
@@ -36,9 +36,9 @@ proc writeConfig*(config: Config) {.raises: [ConfigWriteError].} =
   except Exception as e:
     raise newException(ConfigWriteError, "Failed to write Nixy config: " & e.msg)
 
-proc isNixyProfileAllowed*(nixyProfileFile: string): bool {.raises: [ConfigReadError].} =
+proc areNixyDirConfigsAllowed*(nixyDirConfigDir: string): bool {.raises: [ConfigReadError].} =
   let config = readConfig()
   try:
-    return nixyProfileFile.parentDir in config.allowedNixyProfileDirs
+    nixyDirConfigDir in config.allowedNixyDirConfigsDirs
   except OSError as e:
     raise newException(ConfigReadError, "Failed to get current dir: " & e.msg)

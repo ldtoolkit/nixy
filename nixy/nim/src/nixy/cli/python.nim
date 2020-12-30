@@ -1,6 +1,7 @@
 import ../lib/config
-import ../lib/core
-import ../lib/python
+import ../lib/module/python
+import ../lib/module/python_utils
+import ../lib/path
 
 
 proc python_venv*(name: seq[string],

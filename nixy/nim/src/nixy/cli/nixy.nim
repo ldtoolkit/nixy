@@ -1,10 +1,10 @@
 import ../lib/config
-import ../lib/nixy as lib
+import ../lib/module/nixy
 
 
 proc nixy_allow_profile*: int {.raises: [].} =
   try:
-    lib.allowCurrentDirNixyProfile()
+    nixy.allowCurrentDirNixyConfigs()
   except ConfigError as e:
     echo(e.msg)
     return 1
@@ -12,7 +12,7 @@ proc nixy_allow_profile*: int {.raises: [].} =
 
 proc nixy_disallow_profile*: int {.raises: [].} =
   try:
-    lib.disallowCurrentDirNixyProfile()
+    nixy.disallowCurrentDirNixyConfigs()
   except ConfigError as e:
     echo(e.msg)
     return 1

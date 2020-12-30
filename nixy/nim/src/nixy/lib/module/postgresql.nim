@@ -1,5 +1,7 @@
-import core
-import errors
+import ../errors
+import ../path
+import ../utils
+import cmd
 
 import os
 import osproc

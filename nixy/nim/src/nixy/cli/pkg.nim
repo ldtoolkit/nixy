@@ -1,8 +1,8 @@
-import ../lib/core as lib
 import ../lib/errors
+import ../lib/module/pkg
+import ../lib/path
 
 import options
-import os
 import strutils
 import system
 
@@ -27,7 +27,7 @@ proc install*(package: seq[string],
               version = nixUserChrootVersion,
               nixUserChrootDir = nixUserChrootDir,
               nixDir = nixDir)
-    lib.install(packages = package,
+    pkg.install(packages = package,
                 unstable = unstable,
                 attr = attr,
                 nixUserChrootDir = nixUserChrootDir,
@@ -42,7 +42,7 @@ proc remove*(package: seq[string],
              nix_dir = defaultNixDir): int
             {.raises: [].} =
   try:
-    lib.remove(packages = package, nixUserChrootDir = nixUserChrootDir, nixDir = nixDir)
+    pkg.remove(packages = package, nixUserChrootDir = nixUserChrootDir, nixDir = nixDir)
   except RemoveError as e:
     echo(e.msg)
     return 1
@@ -53,23 +53,8 @@ proc list*(available: bool = false,
            nix_dir = defaultNixDir): int
           {.raises: [].} =
   try:
-    lib.query(available = available, nixUserChrootDir = nixUserChrootDir, nixDir = nixDir)
+    pkg.query(available = available, nixUserChrootDir = nixUserChrootDir, nixDir = nixDir)
   except QueryError as e:
-    echo(e.msg)
-    return 1
-  return 0
-
-proc run*(command: seq[string],
-          nix_user_chroot_dir: string = defaultNixUserChrootDir,
-          nix_dir = defaultNixDir,
-          use_system_locale_archive: bool = false): int
-         {.raises: [].} =
-  try:
-    lib.run(command = quoteShellCommand(command),
-            nixUserChrootDir = nixUserChrootDir,
-            nixDir = nixDir,
-            useSystemLocaleArchive = useSystemLocaleArchive)
-  except RunError as e:
     echo(e.msg)
     return 1
   return 0
