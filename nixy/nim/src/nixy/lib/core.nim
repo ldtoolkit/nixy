@@ -120,33 +120,32 @@ proc prepareCommand*(command: string = "",
                      sourceNixyProfile: bool = true): string =
   let nixUserChrootPath = getNixUserChrootPath(nixUserChrootDir)
   let nixDir = nixDir.expandTilde
-  suppress:
-    let execBash = fmt"{nixUserChrootPath} {nixDir} bash"
-    var command = command
-    if isEmptyOrWhitespace(command):
-      command = "bash"
-    if sourceNixyProfile:
-      let nixyProfileFile = getNixyProfileFile()
-      if not isEmptyOrWhitespace(nixyProfileFile):
-        if isNixyProfileAllowed(nixyProfileFile):
-          command = "source " & quoteShell(nixyProfileFile) & "; " & command
-        else:
-          echo("Nixy profile found, but it's not allowed in the Nixy configuration file; Use nixy nixy_allow_profile")
-    if sourceNixProfileSh:
-      command = fmt"source {nixProfileSh}; {command}"
-    if fixLocale:
-      let nixLocale = "~/.nix-profile".expandTilde.expandSymlink
-      if not useSystemLocaleArchive:
-        let nixLocaleArchive = nixLocale / "lib" / "locale" / "locale-archive"
-        command = fmt"export LOCALE_ARCHIVE={nixLocaleArchive}; {command}"
+  let execBash = quoteShellCommand([nixUserChrootPath, nixDir, "bash"])
+  var command = command
+  if isEmptyOrWhitespace(command):
+    command = "bash"
+  if sourceNixyProfile:
+    let nixyProfileFile = getNixyProfileFile()
+    if not isEmptyOrWhitespace(nixyProfileFile):
+      if isNixyProfileAllowed(nixyProfileFile):
+        command = "source " & quoteShell(nixyProfileFile) & "; " & command
       else:
-        if systemLocaleArchive.fileExists:
-          command = fmt"export LOCALE_ARCHIVE={systemLocaleArchive}; {command}"
-        else:
-          raise newException(LocaleArchiveNotFoundError,
-                             "No locale archive found, please install it using:\n" &
-                             "nixy install --attr nixpkgs.glibcLocales")
-    return fmt"{execBash} -c '{command}'"
+        echo("Nixy profile found, but it's not allowed in the Nixy configuration file; Use nixy nixy_allow_profile")
+  if sourceNixProfileSh:
+    command = "source " & quoteShell(nixProfileSh) & "; " & command
+  if fixLocale:
+    if not useSystemLocaleArchive:
+      let nixLocale = "~/.nix-profile".expandTilde.expandSymlink
+      let nixLocaleArchive = nixLocale / "lib" / "locale" / "locale-archive"
+      command = "export LOCALE_ARCHIVE=" & quoteShell(nixLocaleArchive) & "; " & command
+    else:
+      if systemLocaleArchive.fileExists:
+        command = "export LOCALE_ARCHIVE=" & quoteShell(systemLocaleArchive) & "; " & command
+      else:
+        raise newException(LocaleArchiveNotFoundError,
+                           "No locale archive found, please install it using:\n" &
+                           "nixy install --attr nixpkgs.glibcLocales")
+  return execBash & " -c '" & command & "'"
 
 proc install*(packages: seq[string],
               unstable: bool = false,
